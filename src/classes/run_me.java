@@ -50,9 +50,10 @@ public class run_me {
                 continue;
             }
 
-            //input sanitization
+            //primitive input sanitization
             if(command.length != 2) {
-                //TODO: error message
+                System.out.println("Invalid command. Try again.");
+                continue;
             }
 
             //on with the meat of the program
@@ -62,12 +63,14 @@ public class run_me {
             //MOVE CONDITION VERIFYING!
             //OOB error
             if(xMove < 0 || yMove < 0 || yMove > 18) {
-                //TODO: error message
+                System.out.println("Move is impossible. Try again.");
+                continue;
             }
 
             //empty space?
             if(board[yMove][xMove] != '.' && board[yMove][xMove] != '+') {
-                //TODO: occupied space error
+                System.out.println("Invalid move. Try again.");
+                continue;
             }
 
             passiveKo = board.clone();//ko check pt. 1
@@ -81,12 +84,13 @@ public class run_me {
 
             /*TODO: INSERT CAPTURE & SUICIDE CHECK, RETURN INT PTS
             * Where the hell did I put that code??? Find it!!!*/
-            int pts = 0;//tempporary workaround
+            int pts = 0;//temporary workaround
 
             //Ko check pt. 2
             if(Arrays.deepEquals(board, activeKo)) {
-                //TODO: ko error
+                System.out.println("Cannot play there; ko rule prevents it.");
                 board = passiveKo.clone();
+                continue;
             }
             activeKo = passiveKo.clone();
 
@@ -117,11 +121,52 @@ public class run_me {
         }
     }
 
-    /*public static ArrayList<Dimension> exploreGroup(int y, int x, char team) {
-        //somehow returns a list of all stones in the group and a boolean (isAlive)
+    public static ArrayList<Object> exploreGroup(int y, int x, char team) {
 
-        //enemy groups
-        ArrayList<Dimension> captures = new ArrayList<Dimension>();
-        ArrayList<Dimension> temp = exploreGroup(y+1, x+1, team)
-    }*/
+        char[][] board = new char[19][19];//temp, remove before rolling in changes
+
+        //HORRIBLY INEFFICIENT
+		/*recursively explore group of stones 'team' at board[y][x]
+		 * returns a list of stones in the group and a 'isAlive' boolean state*/
+
+        ArrayList<Object> sequel = new ArrayList<Object>();
+        sequel.add(new Boolean(false));
+
+        //EXIT+isAlive -> true
+        if(board[y][x] != team) {//TODO: OOB HANDLING
+            if(board[y][x] == '+' || board[y][y] == '.') {
+                //TODO: sequelHead = true somehow;
+            }
+            return sequel;
+        }
+
+        //the recursive part
+        //TODO: OOB HANDLING again
+        //look up
+        ArrayList<Object> addMe = assessGroup(y-1, x, team);
+        //TODO: remove head
+        sequel.addAll(addMe);
+        //TODO: if(head) {sequel.head = true}
+
+        //look right
+        addMe = assessGroup(y, x+1, team);
+        //TODO: remove head
+        sequel.addAll(addMe);
+        //TODO: if(head) {sequel.head = true}
+
+        //look down
+        addMe = assessGroup(y+1, x, team);
+        //TODO: remove head
+        sequel.addAll(addMe);
+        //TODO: if(head) {sequel.head = true}
+
+        //look left
+        addMe = assessGroup(y, x-1, team);
+        //TODO: remove head
+        sequel.addAll(addMe);
+        //TODO: if(head) {sequel.head = true}
+
+        return sequel;//final exit
+    }
+
 }
