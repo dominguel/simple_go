@@ -1,14 +1,16 @@
-package classes;
+package simple_go;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class run_me {
     public static void main(String[] args) {
 
         //getting the board ready...
+    	System.out.println("Ready? Go!");
         char[][] board = new char[19][19];
         for(int i = 0; i < 19; i++) {
             for(int j = 0; j < 19; j++) {
@@ -24,7 +26,7 @@ public class run_me {
         boolean cPl = true;//true is X is black
         int whiteScore = 0;
         int blackScore = 0;
-        char[][] passiveKo;
+        char[][] passiveKo = new char[19][19];
         char[][] activeKo = new char[19][19];
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int passCount = 0;
@@ -58,8 +60,14 @@ public class run_me {
 
             //on with the meat of the program
             int xMove = "abcdefghijklmnopqrs".indexOf(command[0]);
-            int yMove = Integer.parseInt(command[1]) - 1;
-
+            int yMove = -1;
+            try {
+                yMove = Integer.parseInt(command[1]) - 1;
+            } catch(NumberFormatException e) {
+                System.out.println("Invalid command. Try again.");
+                continue;
+            }
+            
             //MOVE CONDITION VERIFYING!
             //OOB error
             if(xMove < 0 || yMove < 0 || yMove > 18) {
@@ -73,7 +81,27 @@ public class run_me {
                 continue;
             }
 
-            passiveKo = board.clone();//ko check pt. 1
+            /*TODO: BUG FIX:
+             * store board value in passiveKo
+             * execute move on board
+             * compare with active ko
+             *     if equal, revert move with passiveKo
+             *     else, change player, switch passive and active ko
+             * BUGS:
+             * -when ko is encoutered, alg seems to play anyway
+             * -encounters ko when condition isnt valid (activeKo changed without direct access)
+             * 
+             * PLAUSIBLE SOURCES:
+             * somehow, during execution, activeKo also receives the changes meant only for board
+             * also, passiveKo seems to be affected as the player stays the same, but the execution is done
+             * 
+             * FIXES:
+             * -manually compare and clone arrays?*/
+            
+            //ko check pt. 1
+            for (int i = 0; i < 3; i++) {
+                passiveKo[i] = Arrays.copyOf(board[i], board[i].length);
+            }
 
             //preemptive execution
             if(cPl) {
@@ -89,10 +117,14 @@ public class run_me {
             //Ko check pt. 2
             if(Arrays.deepEquals(board, activeKo)) {
                 System.out.println("Cannot play there; ko rule prevents it.");
-                board = passiveKo.clone();
+                for (int i = 0; i < 3; i++) {
+                    board[i] = Arrays.copyOf(passiveKo[i], passiveKo[i].length);
+                }
                 continue;
             }
-            activeKo = passiveKo.clone();
+            for (int i = 0; i < 3; i++) {
+                activeKo[i] = Arrays.copyOf(passiveKo[i], passiveKo[i].length);
+            }
 
             //tally points
             if(cPl) {
@@ -143,25 +175,25 @@ public class run_me {
         //the recursive part
         //TODO: OOB HANDLING again
         //look up
-        ArrayList<Object> addMe = assessGroup(y-1, x, team);
+        ArrayList<Object> addMe = exploreGroup(y-1, x, team);
         //TODO: remove head
         sequel.addAll(addMe);
         //TODO: if(head) {sequel.head = true}
 
         //look right
-        addMe = assessGroup(y, x+1, team);
+        addMe = exploreGroup(y, x+1, team);
         //TODO: remove head
         sequel.addAll(addMe);
         //TODO: if(head) {sequel.head = true}
 
         //look down
-        addMe = assessGroup(y+1, x, team);
+        addMe = exploreGroup(y+1, x, team);
         //TODO: remove head
         sequel.addAll(addMe);
         //TODO: if(head) {sequel.head = true}
 
         //look left
-        addMe = assessGroup(y, x-1, team);
+        addMe = exploreGroup(y, x-1, team);
         //TODO: remove head
         sequel.addAll(addMe);
         //TODO: if(head) {sequel.head = true}
